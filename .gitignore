@@ -8,3 +8,5 @@
 **/DerivedDataCache/*
 
 .vs
+.vscode
+*.code-workspace
