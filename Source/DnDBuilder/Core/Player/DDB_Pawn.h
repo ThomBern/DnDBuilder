@@ -27,6 +27,30 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Input|Camera Vars")
+	float zoomSpeed = 40.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Input|Camera Vars")
+	float zoomMin = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Input|Camera Vars")
+	float zoomMax = 2000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Input|Camera Vars")
+	float locationSpeed = 20.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Input|Camera Vars")
+	float rotationSpeed = 45.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Input|Camera Vars")
+	float zoomInterpSpeed = 2.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Input|Camera Vars")
+	float locationInterpSpeed = 5.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Input|Camera Vars")
+	float rotationInterpSpeed = 5.f;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext = nullptr;
 

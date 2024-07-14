@@ -48,11 +48,11 @@ void ADDB_Pawn::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	
-	SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, zoomDesired, DeltaTime, 2);
+	SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, zoomDesired, DeltaTime, zoomInterpSpeed);
 
-	SetActorLocation(FMath::VInterpTo(GetActorLocation(), locationDesired, DeltaTime, 5));
+	SetActorLocation(FMath::VInterpTo(GetActorLocation(), locationDesired, DeltaTime, locationInterpSpeed));
 
-	SetActorRotation(FMath::RInterpTo(GetActorRotation(), rotationDesired, DeltaTime, 5));
+	SetActorRotation(FMath::RInterpTo(GetActorRotation(), rotationDesired, DeltaTime, rotationInterpSpeed));
 }
 
 // Called to bind functionality to input
@@ -82,25 +82,25 @@ void ADDB_Pawn::HandleZoom(const FInputActionValue& value)
 {
 	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("%f"), value.Get<float>()));
 
-	zoomDesired = FMath::Clamp(zoomDesired + value.Get<float>() * 40, 100.f, 2000.f);
+	zoomDesired = FMath::Clamp(zoomDesired + value.Get<float>() * zoomSpeed, zoomMin, zoomMax);
 }
 
 void ADDB_Pawn::HandleForward(const FInputActionValue& value)
 {
-	locationDesired = locationDesired + GetActorForwardVector() * value.Get<float>() * 20;
+	locationDesired = locationDesired + GetActorForwardVector() * value.Get<float>() * locationSpeed;
 }
 
 void ADDB_Pawn::HandleRight(const FInputActionValue& value)
 {
-	locationDesired = locationDesired + GetActorRightVector() * value.Get<float>() * 20;
+	locationDesired = locationDesired + GetActorRightVector() * value.Get<float>() * locationSpeed;
 }
 
 void ADDB_Pawn::HandleRotationRight(const FInputActionValue& value)
 {
-	rotationDesired.Yaw = rotationDesired.Yaw - 45.f; 
+	rotationDesired.Yaw = rotationDesired.Yaw - rotationSpeed; 
 }
 
 void ADDB_Pawn::HandleRotationLeft(const FInputActionValue& value)
 {
-	rotationDesired.Yaw = rotationDesired.Yaw + 45.f; 
+	rotationDesired.Yaw = rotationDesired.Yaw + rotationSpeed; 
 }
