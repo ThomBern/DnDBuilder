@@ -29,9 +29,6 @@ public:
 	FVector gridCenterLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
-	FVector gridBottomLeftLocation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
 	FVector gridTileSize;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
@@ -47,7 +44,9 @@ private:
 	void SpawnGrid(FVector centerLocation, FVector tileSize, FVector2D tileCount, EDDB_Gridshape shape);
 	void DestroyGrid();
 	
-	FDDB_Gridshape_Data* GetCurrentShapeData();
+	FDDB_Gridshape_Data* GetCurrentShapeData() const;
+	void CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLeft);
+	FVector GetTileLocationFromGridIndex(FVector2D gridIndex) const;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> SceneRoot;
@@ -55,6 +54,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInstancedStaticMeshComponent> InstancedMesh;
 
-
+	FVector gridBottomLeftLocation;
 	TObjectPtr<UDataTable> gridDT;
 };
