@@ -23,7 +23,7 @@ ADDB_Pawn::ADDB_Pawn()
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 800.f;
+	SpringArm->TargetArmLength = 3500.f;
 	SpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
 	SpringArm->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
 

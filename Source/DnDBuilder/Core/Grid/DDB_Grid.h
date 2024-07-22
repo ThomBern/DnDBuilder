@@ -25,6 +25,12 @@ public:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
+	UFUNCTION(BlueprintCallable)
+	void SpawnGrid(FVector centerLocation, FVector tileSize, FVector2D tileCount, EDDB_Gridshape shape);
+	
+	UFUNCTION(BlueprintCallable)
+	void DestroyGrid();
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
 	FVector gridCenterLocation;
 
@@ -41,9 +47,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:	
-	void SpawnGrid(FVector centerLocation, FVector tileSize, FVector2D tileCount, EDDB_Gridshape shape);
-	void DestroyGrid();
-	
+
 	FDDB_Gridshape_Data* GetCurrentShapeData() const;
 	void CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLeft);
 	FVector GetTileLocationFromGridIndex(FVector2D gridIndex) const;

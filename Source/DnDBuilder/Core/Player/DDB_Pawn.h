@@ -34,7 +34,7 @@ public:
 	float zoomMin = 100.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Input|Camera Vars")
-	float zoomMax = 2000.f;
+	float zoomMax = 4000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Input|Camera Vars")
 	float locationSpeed = 20.f;

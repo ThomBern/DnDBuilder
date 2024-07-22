@@ -52,7 +52,7 @@ void ADDB_Grid::Tick(float DeltaTime)
 
 void ADDB_Grid::OnConstruction(const FTransform &Transform)
 {
-	SpawnGrid(GetActorLocation(), gridTileSize, gridTileCount, gridShape);
+	// SpawnGrid(GetActorLocation(), gridTileSize, gridTileCount, gridShape);
 }
 
 // Called when the game starts or when spawned
@@ -85,7 +85,7 @@ void ADDB_Grid::SpawnGrid(FVector centerLocation, FVector tileSize, FVector2D ti
 	auto LoopBody = [&](int x, int y) -> void {
 		FTransform tileTransform;
 		tileTransform.SetScale3D(gridTileSize / row->meshSize);
-		tileTransform.SetTranslation(GetTileLocationFromGridIndex(FVector2D(x,y)));
+		tileTransform.SetTranslation(GetTileLocationFromGridIndex(FVector2D(x,y)) + FVector(0.f,0.f,2.f));
 		InstancedMesh->AddInstance(tileTransform, true); // Add to world space with true
 	};
 
