@@ -34,6 +34,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
 	FVector gridCenterLocation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid vars")
+	FVector gridBottomLeftLocation;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
 	FVector gridTileSize;
 
@@ -58,6 +61,5 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInstancedStaticMeshComponent> InstancedMesh;
 
-	FVector gridBottomLeftLocation;
 	TObjectPtr<UDataTable> gridDT;
 };
