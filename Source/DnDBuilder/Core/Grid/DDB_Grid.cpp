@@ -36,7 +36,7 @@ ADDB_Grid::ADDB_Grid()
 	gridDT = gridShapeRef.Object;
 
 	gridCenterLocation = FVector(0.f, 0.f, 0.f);
-	gridTileSize = FVector(200.f, 200.f, 0.f);
+	gridTileSize = FVector(200.f, 200.f, 50.f);
 	gridTileCount = FVector2D(10.f, 10.f);
 	gridShape = EDDB_Gridshape::SQUARE;
 	gridBottomLeftLocation = gridCenterLocation - FVector((gridTileCount / 2) * FVector2D(gridTileSize.X, gridTileSize.Y), 0.f);
