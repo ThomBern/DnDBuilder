@@ -9,6 +9,7 @@
 #include "UObject/NoExportTypes.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Math/UnrealMathUtility.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 #include "../Utilities/DDB_FL_Utilities.h"
 
@@ -37,10 +38,10 @@ ADDB_Grid::ADDB_Grid()
 
 	gridCenterLocation = FVector(0.f, 0.f, 0.f);
 	gridTileSize = FVector(200.f, 200.f, 50.f);
-	gridTileCount = FVector2D(10.f, 10.f);
+	gridTileCount = FIntPoint(10, 10);
 	gridShape = EDDB_Gridshape::SQUARE;
-	gridBottomLeftLocation = gridCenterLocation - FVector((gridTileCount / 2) * FVector2D(gridTileSize.X, gridTileSize.Y), 0.f);
-
+	gridBottomLeftLocation = gridCenterLocation - FVector((FVector2D(gridTileCount) / 2) * FVector2D(gridTileSize.X, gridTileSize.Y), 0.f);
+	gridOffsetFromGround = 2.f;
 }
 
 // Called every frame
@@ -61,12 +62,14 @@ void ADDB_Grid::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ADDB_Grid::SpawnGrid(FVector centerLocation, FVector tileSize, FVector2D tileCount, EDDB_Gridshape shape)
+void ADDB_Grid::SpawnGrid(FVector centerLocation, FVector tileSize, FIntPoint tileCount, EDDB_Gridshape shape, bool useEnvironment)
 {
 	gridCenterLocation = centerLocation;
 	gridTileSize = tileSize;
-	gridTileCount.Set(FMath::RoundHalfFromZero(tileCount.X), FMath::RoundHalfFromZero(tileCount.Y));
+	gridTileCount = tileCount;
 	gridShape = shape;
+
+	SetGridOffsetFromGround(gridOffsetFromGround);
 
 	FVector center, bottomLeft;
 	CalculateCenterAndBottomLeft(center, bottomLeft);
@@ -85,22 +88,36 @@ void ADDB_Grid::SpawnGrid(FVector centerLocation, FVector tileSize, FVector2D ti
 	auto LoopBody = [&](int x, int y) -> void {
 		FTransform tileTransform;
 		tileTransform.SetScale3D(gridTileSize / row->meshSize);
-		tileTransform.SetTranslation(GetTileLocationFromGridIndex(FVector2D(x,y)) + FVector(0.f,0.f,2.f));
-		InstancedMesh->AddInstance(tileTransform, true); // Add to world space with true
+		tileTransform.SetTranslation(GetTileLocationFromGridIndex(FIntPoint(x,y)));
+		
+		if (useEnvironment) {
+			bool hit = false;
+			FVector outLocation;
+			TraceForGround(tileTransform.GetTranslation(), hit, outLocation);
+
+			if(hit) {
+				UE_LOG(LogTemp, Warning, TEXT("in if"));		
+				tileTransform.SetTranslation(outLocation);
+				InstancedMesh->AddInstance(tileTransform, false);
+			}
+		}
+		else {
+			InstancedMesh->AddInstance(tileTransform, false);
+		}
 	};
 
 	InstancedMesh->SetStaticMesh(row->flatMesh);
 	InstancedMesh->SetMaterial(0, row->flatBorderMaterial);
 
-	for (uint32 x = 0; x < FMath::RoundFromZero(gridTileCount.X); x++) {
+	for (int32 x = 0; x < gridTileCount.X; x++) {
 		if (gridShape != EDDB_Gridshape::HEXAGON) {
-			for (uint32 y = 0; y < FMath::RoundFromZero(gridTileCount.Y); y++) {
+			for (int32 y = 0; y < gridTileCount.Y; y++) {
 				LoopBody(x,y);
 			}
 		}
 		else { // HEXAGON
 			int firstIndex = UDDB_FL_Utilities::IsIntEven(x) ? 0 : 1;
-			for (uint32 y = firstIndex; y < FMath::RoundFromZero(gridTileCount.Y) * 2; y++) {
+			for (int32 y = firstIndex; y < gridTileCount.Y * 2; y++) {
 				LoopBody(x,y);
 				y++;
 			}
@@ -112,6 +129,42 @@ void ADDB_Grid::SpawnGrid(FVector centerLocation, FVector tileSize, FVector2D ti
 void ADDB_Grid::DestroyGrid()
 {
 	InstancedMesh->ClearInstances();
+}
+
+void ADDB_Grid::TraceForGround(FVector location, bool& hitSomething, FVector& outLocation)
+{
+	FVector start = location + FVector(0.f,0.f,1000.f);
+	FVector end = location - FVector(0.f,0.f,1000.f);
+
+	float radius = gridTileSize.X / 3;
+
+	FCollisionShape sphere = FCollisionShape::MakeSphere(radius);
+	TArray<FHitResult> outHits;
+	FCollisionQueryParams params(FName(TEXT("TraceForGround")), false, this);
+
+	// check if not correct, just use outHits length instead
+	GetWorld()->SweepMultiByChannel(
+		outHits,
+		start,
+		end,
+		FQuat::Identity,
+		ECC_GameTraceChannel1,
+		sphere,
+		params
+	);
+
+	if (!outHits.IsEmpty()) {
+		FVector firstHitLocation = outHits[0].Location;
+		
+		outLocation = FVector(location.X, location.Y, FMath::GridSnap(firstHitLocation.Z - radius, gridTileSize.Z));
+		hitSomething = true;
+	}
+
+}
+
+void ADDB_Grid::SetGridOffsetFromGround(float offset)
+{
+	InstancedMesh->SetWorldLocation(FVector(0.f,0.f,offset));
 }
 
 FDDB_Gridshape_Data* ADDB_Grid::GetCurrentShapeData() const
@@ -131,11 +184,11 @@ void ADDB_Grid::CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLef
 	if (gridShape == EDDB_Gridshape::SQUARE) {
 		center = UDDB_FL_Utilities::SnapVectorToVector(gridCenterLocation, gridTileSize);
 
-		FVector2D tileCount = gridTileCount;
-		if (!UDDB_FL_Utilities::IsFloatEven(gridTileCount.X)) {
+		FVector2D tileCount = FVector2D(gridTileCount);
+		if (!UDDB_FL_Utilities::IsIntEven(gridTileCount.X)) {
 			tileCount.X = gridTileCount.X - 1.f;
 		}
-		if (!UDDB_FL_Utilities::IsFloatEven(gridTileCount.Y)) {
+		if (!UDDB_FL_Utilities::IsIntEven(gridTileCount.Y)) {
 			tileCount.Y = gridTileCount.Y - 1.f;
 		}
 
@@ -145,15 +198,15 @@ void ADDB_Grid::CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLef
 	if (gridShape == EDDB_Gridshape::HEXAGON) {
 		center = UDDB_FL_Utilities::SnapVectorToVector(gridCenterLocation, gridTileSize * FVector(1.5f,1.f,1.f));
 		
-		FVector distance = FVector((gridTileCount / FVector2D(3.f,2.f)) * FVector2D(gridTileSize.X, gridTileSize.Y), 0.f);
+		FVector distance = FVector((FVector2D(gridTileCount) / FVector2D(3.f,2.f)) * FVector2D(gridTileSize.X, gridTileSize.Y), 0.f);
 
 		bottomLeft = center - UDDB_FL_Utilities::SnapVectorToVector(distance, gridTileSize * FVector(1.5f,1.f,1.f));
 	}
 }
 
-FVector ADDB_Grid::GetTileLocationFromGridIndex(FVector2D gridIndex) const
+FVector ADDB_Grid::GetTileLocationFromGridIndex(FIntPoint gridIndex) const
 {
-	FVector2D fittedIndex = gridIndex;
+	FVector2D fittedIndex = FVector2D(gridIndex);
 
 	if (gridShape == EDDB_Gridshape::HEXAGON) {
 		fittedIndex.X = gridIndex.X * 0.75f;

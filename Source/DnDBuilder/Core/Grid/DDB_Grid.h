@@ -26,10 +26,16 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	UFUNCTION(BlueprintCallable)
-	void SpawnGrid(FVector centerLocation, FVector tileSize, FVector2D tileCount, EDDB_Gridshape shape);
+	void SpawnGrid(FVector centerLocation, FVector tileSize, FIntPoint tileCount, EDDB_Gridshape shape, bool useEnvironment = false);
 	
 	UFUNCTION(BlueprintCallable)
 	void DestroyGrid();
+
+	UFUNCTION(BlueprintCallable)
+	void TraceForGround(FVector location, bool& hitSomething, FVector& outLocation);
+
+	UFUNCTION(BlueprintCallable)
+	void SetGridOffsetFromGround(float offset);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
 	FVector gridCenterLocation;
@@ -41,10 +47,13 @@ public:
 	FVector gridTileSize;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
-	FVector2D gridTileCount;
+	FIntPoint gridTileCount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
 	EDDB_Gridshape gridShape;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
+	float gridOffsetFromGround;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -53,7 +62,7 @@ private:
 
 	FDDB_Gridshape_Data* GetCurrentShapeData() const;
 	void CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLeft);
-	FVector GetTileLocationFromGridIndex(FVector2D gridIndex) const;
+	FVector GetTileLocationFromGridIndex(FIntPoint gridIndex) const;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> SceneRoot;
