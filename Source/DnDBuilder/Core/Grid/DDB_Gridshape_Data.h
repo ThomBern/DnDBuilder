@@ -48,3 +48,4 @@ enum class EDDB_Gridshape: uint8
 	HEXAGON UMETA(DisplayName="Hexagon"),
 	NUM_MAX UMETA(Hidden)
 };
+

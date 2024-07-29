@@ -4,14 +4,12 @@
 #include "DDB_Grid.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
-#include "Kismet/DataTableFunctionLibrary.h"
-#include "Engine/DataTable.h"
-#include "UObject/NoExportTypes.h"
-#include "UObject/ConstructorHelpers.h"
 #include "Math/UnrealMathUtility.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+#include "DDB_GridModifier.h"
 #include "../Utilities/DDB_FL_Utilities.h"
+#include "DDB_FL_Gridshape.h"
 
 // Sets default values
 ADDB_Grid::ADDB_Grid()
@@ -25,16 +23,6 @@ ADDB_Grid::ADDB_Grid()
 	InstancedMesh = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("InstancedMesh"));
 	InstancedMesh->SetupAttachment(RootComponent);
 
-	static ConstructorHelpers::FObjectFinder<UDataTable> 
-		gridShapeRef(TEXT("DataTable'/Game/Blueprint/Core/DDB_DT_Gridshape_Data.DDB_DT_Gridshape_Data'"));
-
-	if (!gridShapeRef.Object) {
-		UE_LOG(LogTemp, Warning, TEXT("Gridshape DT not found; returning from SpawnGrid method"));		
-
-		return;
-	}
-
-	gridDT = gridShapeRef.Object;
 
 	gridCenterLocation = FVector(0.f, 0.f, 0.f);
 	gridTileSize = FVector(200.f, 200.f, 50.f);
@@ -78,25 +66,24 @@ void ADDB_Grid::SpawnGrid(FVector centerLocation, FVector tileSize, FIntPoint ti
 
 	DestroyGrid();
 
-	FDDB_Gridshape_Data* row = GetCurrentShapeData();
+	FDDB_Gridshape_Data row = GetCurrentShapeData();
 
-	if (!row) {
+	if (!row.mesh) {
 		UE_LOG(LogTemp, Warning, TEXT("Row not found; returning from SpawnGrid method"));		
 		return;
 	}
 
 	auto LoopBody = [&](int x, int y) -> void {
 		FTransform tileTransform;
-		tileTransform.SetScale3D(gridTileSize / row->meshSize);
+		tileTransform.SetScale3D(gridTileSize / row.meshSize);
 		tileTransform.SetTranslation(GetTileLocationFromGridIndex(FIntPoint(x,y)));
 		
 		if (useEnvironment) {
-			bool hit = false;
+			EDDB_TileType type;
 			FVector outLocation;
-			TraceForGround(tileTransform.GetTranslation(), hit, outLocation);
+			TraceForGround(tileTransform.GetTranslation(), type, outLocation);
 
-			if(hit) {
-				UE_LOG(LogTemp, Warning, TEXT("in if"));		
+			if(IsTileTypeWalkable(type)) {
 				tileTransform.SetTranslation(outLocation);
 				InstancedMesh->AddInstance(tileTransform, false);
 			}
@@ -106,8 +93,8 @@ void ADDB_Grid::SpawnGrid(FVector centerLocation, FVector tileSize, FIntPoint ti
 		}
 	};
 
-	InstancedMesh->SetStaticMesh(row->flatMesh);
-	InstancedMesh->SetMaterial(0, row->flatBorderMaterial);
+	InstancedMesh->SetStaticMesh(row.flatMesh);
+	InstancedMesh->SetMaterial(0, row.flatBorderMaterial);
 
 	for (int32 x = 0; x < gridTileCount.X; x++) {
 		if (gridShape != EDDB_Gridshape::HEXAGON) {
@@ -131,7 +118,7 @@ void ADDB_Grid::DestroyGrid()
 	InstancedMesh->ClearInstances();
 }
 
-void ADDB_Grid::TraceForGround(FVector location, bool& hitSomething, FVector& outLocation)
+void ADDB_Grid::TraceForGround(FVector location, EDDB_TileType& tileType, FVector& outLocation)
 {
 	FVector start = location + FVector(0.f,0.f,1000.f);
 	FVector end = location - FVector(0.f,0.f,1000.f);
@@ -154,10 +141,27 @@ void ADDB_Grid::TraceForGround(FVector location, bool& hitSomething, FVector& ou
 	);
 
 	if (!outHits.IsEmpty()) {
-		FVector firstHitLocation = outHits[0].Location;
-		
-		outLocation = FVector(location.X, location.Y, FMath::GridSnap(firstHitLocation.Z - radius, gridTileSize.Z));
-		hitSomething = true;
+
+		tileType = EDDB_TileType::NORMAL;
+		float zLocation = 0.f;
+
+		for (const FHitResult& outHit : outHits) {
+			ADDB_GridModifier* modifier = Cast<ADDB_GridModifier>(outHit.GetActor());
+			
+			if(!modifier) {
+				zLocation = FMath::GridSnap(outHit.Location.Z - radius, gridTileSize.Z);
+				continue;
+			}
+
+			tileType = modifier->tileType;
+			zLocation = FMath::GridSnap(outHit.Location.Z - radius, gridTileSize.Z);
+		}
+
+		outLocation = FVector(location.X, location.Y, zLocation);
+	}
+	else {
+		tileType = EDDB_TileType::NONE;
+		outLocation = location;
 	}
 
 }
@@ -167,15 +171,12 @@ void ADDB_Grid::SetGridOffsetFromGround(float offset)
 	InstancedMesh->SetWorldLocation(FVector(0.f,0.f,offset));
 }
 
-FDDB_Gridshape_Data* ADDB_Grid::GetCurrentShapeData() const
+FDDB_Gridshape_Data ADDB_Grid::GetCurrentShapeData() const
 {
-	FText rowName;
-	UEnum::GetDisplayValueAsText(gridShape, rowName);
+	FDDB_Gridshape_Data row;
 
-	FDDB_Gridshape_Data* row = nullptr;
-	row = gridDT->FindRow<FDDB_Gridshape_Data>(FName(rowName.ToString()), "");
-
-    return row;
+	UDDB_FL_Gridshape::GetShapeData(gridShape, row);
+	return row;
 }
 
 void ADDB_Grid::CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLeft)
@@ -216,4 +217,9 @@ FVector ADDB_Grid::GetTileLocationFromGridIndex(FIntPoint gridIndex) const
 	FVector tileLocation = gridBottomLeftLocation + FVector(gridTileSize.X * fittedIndex.X, gridTileSize.Y * fittedIndex.Y, 0.f);
 
     return tileLocation;
+}
+
+bool ADDB_Grid::IsTileTypeWalkable(EDDB_TileType type) const 
+{
+	return type != EDDB_TileType::NONE && type != EDDB_TileType::OBSTACLE;
 }

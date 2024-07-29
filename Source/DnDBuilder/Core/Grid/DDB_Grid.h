@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../DDB_Gridshape_Data.h"
+
+#include "DDB_Gridshape_Data.h"
+#include "DDB_TileType.h"
 
 #include "DDB_Grid.generated.h"
 
 class UInstancedStaticMeshComponent;
-class UDataTable;
 
 UCLASS()
 class DNDBUILDER_API ADDB_Grid : public AActor
@@ -32,7 +33,7 @@ public:
 	void DestroyGrid();
 
 	UFUNCTION(BlueprintCallable)
-	void TraceForGround(FVector location, bool& hitSomething, FVector& outLocation);
+	void TraceForGround(FVector location, EDDB_TileType& tileType, FVector& outLocation);
 
 	UFUNCTION(BlueprintCallable)
 	void SetGridOffsetFromGround(float offset);
@@ -60,15 +61,20 @@ protected:
 
 private:	
 
-	FDDB_Gridshape_Data* GetCurrentShapeData() const;
+	FDDB_Gridshape_Data GetCurrentShapeData() const;
+	
 	void CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLeft);
+	
 	FVector GetTileLocationFromGridIndex(FIntPoint gridIndex) const;
+	
+	bool IsTileTypeWalkable(EDDB_TileType type) const;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	void LoopBody(int32 x, int32 y, FDDB_Gridshape_Data row, bool useEnv);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> SceneRoot;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInstancedStaticMeshComponent> InstancedMesh;
 
-	TObjectPtr<UDataTable> gridDT;
 };
