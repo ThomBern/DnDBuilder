@@ -12,6 +12,7 @@
 
 class UInstancedStaticMeshComponent;
 class UChildActorComponent;
+class APlayerController;
 class ADDB_GridVisual;
 struct FDDB_TileData;
 
@@ -39,6 +40,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void TraceForGround(FVector location, EDDB_TileType& tileType, FVector& outLocation);
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetCursorLocationOnGrid(int32 index);
+
+	UFUNCTION(BlueprintCallable)
+	FIntPoint GetTileIndexUnderCursor(int32 playerIndex);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Default)
 	FVector gridCenterLocation;
@@ -70,6 +77,8 @@ private:
 	void CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLeft);
 	
 	FVector GetTileLocationFromGridIndex(FIntPoint gridIndex) const;
+	FIntPoint GetTileIndexFromWorldLocation(FVector location) const;
+
 
 	void AddGridTile(FDDB_Tile_Data data);
 

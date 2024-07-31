@@ -3,15 +3,17 @@
 
 #include "DDB_Grid.h"
 
+#include "GameFramework/PlayerController.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 
+#include "Math/Plane.h"
 #include "Math/UnrealMathUtility.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 #include "DDB_GridVisual.h"
 #include "DDB_GridModifier.h"
-
 #include "../Utilities/DDB_FL_Utilities.h"
 #include "Utilities/DDB_FL_Gridshape.h"
 #include "Utilities/DDB_FL_Tile.h"
@@ -178,6 +180,64 @@ void ADDB_Grid::TraceForGround(FVector location, EDDB_TileType& tileType, FVecto
 
 }
 
+FVector ADDB_Grid::GetCursorLocationOnGrid(int32 index)
+{
+	APlayerController* controller = UGameplayStatics::GetPlayerController(this, index);
+
+	FHitResult hitResult;
+	ETraceTypeQuery test = UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel2);
+
+	if (controller->GetHitResultUnderCursorByChannel(test, false, hitResult)) {
+		return hitResult.Location;
+	}
+	else {
+
+		FVector location, direction;
+		if (controller->DeprojectMousePositionToWorld(location, direction)) {
+			FVector intersection = FMath::LinePlaneIntersection(
+				location, 
+				location + direction * 999999.f, 
+				FPlane(gridCenterLocation, FVector(0.f,0.f,1.f))
+			);
+
+			return intersection;
+		}
+	}
+
+	return FVector(-9999.f, -9999.f, -9999.f);
+}
+
+FIntPoint ADDB_Grid::GetTileIndexFromWorldLocation(FVector location) const
+{
+	FVector locationOnGrid = location - gridBottomLeftLocation;
+
+	if (gridShape == EDDB_Gridshape::SQUARE) {
+		FVector snappedLocation = UDDB_FL_Utilities::SnapVectorToVector(locationOnGrid, gridTileSize);
+		FVector interm = snappedLocation / gridTileSize;
+		return FIntPoint(interm.X, interm.Y);
+	}
+
+	if (gridShape == EDDB_Gridshape::HEXAGON) {
+		FVector snappedLocation = UDDB_FL_Utilities::SnapVectorToVector(locationOnGrid * FVector(1.f,2.f,1.f), gridTileSize * FVector(0.75f,0.25f,1.f));
+		FVector interm = snappedLocation / (gridTileSize * FVector(0.75f,1.f,1.f));
+
+		if (UDDB_FL_Utilities::IsFloatEven(interm.X)) {
+			return FIntPoint(FMath::RoundFromZero(interm.X), FMath::RoundHalfFromZero(interm.Y / 2) * 2);
+		}
+		else {
+			return FIntPoint(FMath::RoundFromZero(interm.X), (FMath::Floor(interm.Y / 2) * 2) + 1);
+		}
+	}
+
+	return FIntPoint(-999,-999);
+}
+
+FIntPoint ADDB_Grid::GetTileIndexUnderCursor(int32 playerIndex)
+{
+	FVector locationOnGrid = GetCursorLocationOnGrid(playerIndex);
+    return GetTileIndexFromWorldLocation(locationOnGrid);
+}
+
 FDDB_Gridshape_Data ADDB_Grid::GetCurrentShapeData() const
 {
 	FDDB_Gridshape_Data row;
@@ -188,7 +248,6 @@ FDDB_Gridshape_Data ADDB_Grid::GetCurrentShapeData() const
 
 void ADDB_Grid::CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLeft)
 {
-
 	if (gridShape == EDDB_Gridshape::SQUARE) {
 		center = UDDB_FL_Utilities::SnapVectorToVector(gridCenterLocation, gridTileSize);
 
@@ -214,11 +273,18 @@ void ADDB_Grid::CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLef
 
 FVector ADDB_Grid::GetTileLocationFromGridIndex(FIntPoint gridIndex) const
 {
-	FVector2D fittedIndex = FVector2D(gridIndex);
-
-	if (gridShape == EDDB_Gridshape::HEXAGON) {
-		fittedIndex.X = gridIndex.X * 0.75f;
-		fittedIndex.Y = gridIndex.Y * 0.5f;
+	FVector2D fittedIndex;
+	
+	switch (gridShape) {
+		case EDDB_Gridshape::SQUARE:
+			fittedIndex = FVector2D(gridIndex);
+			break;
+		case EDDB_Gridshape::HEXAGON:
+			fittedIndex.X = gridIndex.X * 0.75f;
+			fittedIndex.Y = gridIndex.Y * 0.5f;
+			break;
+		default:
+			fittedIndex = FVector2D(-999.f, -999.f);
 	}
 
 	FVector tileLocation = gridBottomLeftLocation + FVector(gridTileSize.X * fittedIndex.X, gridTileSize.Y * fittedIndex.Y, 0.f);
