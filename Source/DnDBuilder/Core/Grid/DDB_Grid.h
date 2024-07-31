@@ -11,6 +11,9 @@
 #include "DDB_Grid.generated.h"
 
 class UInstancedStaticMeshComponent;
+class UChildActorComponent;
+class ADDB_GridVisual;
+struct FDDB_TileData;
 
 UCLASS()
 class DNDBUILDER_API ADDB_Grid : public AActor
@@ -26,6 +29,8 @@ public:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
+	FDDB_Gridshape_Data GetCurrentShapeData() const;
+
 	UFUNCTION(BlueprintCallable)
 	void SpawnGrid(FVector centerLocation, FVector tileSize, FIntPoint tileCount, EDDB_Gridshape shape, bool useEnvironment = false);
 	
@@ -35,46 +40,43 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void TraceForGround(FVector location, EDDB_TileType& tileType, FVector& outLocation);
 
-	UFUNCTION(BlueprintCallable)
-	void SetGridOffsetFromGround(float offset);
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Default)
 	FVector gridCenterLocation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grid vars")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Default)
 	FVector gridBottomLeftLocation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Default)
 	FVector gridTileSize;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Default)
 	FIntPoint gridTileCount;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Default)
 	EDDB_Gridshape gridShape;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid vars")
-	float gridOffsetFromGround;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<ADDB_GridVisual> gridVisual;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TMap<FIntPoint, FDDB_Tile_Data> gridTiles;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:	
-
-	FDDB_Gridshape_Data GetCurrentShapeData() const;
 	
 	void CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLeft);
 	
 	FVector GetTileLocationFromGridIndex(FIntPoint gridIndex) const;
-	
-	bool IsTileTypeWalkable(EDDB_TileType type) const;
 
-	void LoopBody(int32 x, int32 y, FDDB_Gridshape_Data row, bool useEnv);
+	void AddGridTile(FDDB_Tile_Data data);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> SceneRoot;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UInstancedStaticMeshComponent> InstancedMesh;
+	TObjectPtr<UChildActorComponent> CA_GridVisual;
 
 };
