@@ -6,7 +6,11 @@
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstance.h"
 
-#include"DDB_Gridshape_Data.generated.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
+
+#include "DDB_FL_Gridshape.generated.h"
+
+class UDataTable;
 
 /**
  * 
@@ -40,6 +44,7 @@ struct DNDBUILDER_API FDDB_Gridshape_Data: public FTableRowBase
 	}
 };
 
+
 UENUM(BlueprintType)
 enum class EDDB_Gridshape: uint8
 {
@@ -48,4 +53,21 @@ enum class EDDB_Gridshape: uint8
 	HEXAGON UMETA(DisplayName="Hexagon"),
 	NUM_MAX UMETA(Hidden)
 };
+
+
+/**
+ * 
+ */
+UCLASS()
+class DNDBUILDER_API UDDB_FL_Gridshape : public UBlueprintFunctionLibrary
+{
+	GENERATED_UCLASS_BODY()
+
+	UFUNCTION(BlueprintPure)
+	static bool GetShapeData(EDDB_Gridshape gridShape, FDDB_Gridshape_Data& outRow);
+	
+	static TObjectPtr<UDataTable> gridDT;
+};
+
+
 

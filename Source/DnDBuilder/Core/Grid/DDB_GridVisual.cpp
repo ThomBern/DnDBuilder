@@ -7,10 +7,9 @@
 
 #include "DDB_Grid.h"
 #include "DDB_GridMeshInstance.h"
-#include "DDB_Gridshape_Data.h"
-#include "DDB_TileType.h"
 
-#include "DDB_FL_Tile.h"
+#include "Utilities/DDB_FL_Gridshape.h"
+#include "Utilities/DDB_FL_Tile.h"
 
 // Sets default values
 ADDB_GridVisual::ADDB_GridVisual()

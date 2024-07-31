@@ -3,8 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 
-#include"DDB_TileType.generated.h"
+#include "DDB_FL_Tile.generated.h"
 
 UENUM(BlueprintType)
 enum class EDDB_TileType: uint8
@@ -36,4 +37,16 @@ struct DNDBUILDER_API FDDB_Tile_Data: public FTableRowBase
 		type = inType;
 		transform = inTransform;
 	}
+};
+
+/**
+ * 
+ */
+UCLASS()
+class DNDBUILDER_API UDDB_FL_Tile : public UBlueprintFunctionLibrary
+{
+	GENERATED_UCLASS_BODY()
+	
+	UFUNCTION(BlueprintPure)
+	static bool IsTileTypeWalkable(EDDB_TileType type);
 };

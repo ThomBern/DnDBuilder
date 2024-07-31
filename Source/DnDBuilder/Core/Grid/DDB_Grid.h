@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 
-#include "DDB_Gridshape_Data.h"
-#include "DDB_TileType.h"
+#include "Utilities/DDB_FL_Gridshape.h"
+#include "Utilities/DDB_FL_Tile.h"
 
 #include "DDB_Grid.generated.h"
 

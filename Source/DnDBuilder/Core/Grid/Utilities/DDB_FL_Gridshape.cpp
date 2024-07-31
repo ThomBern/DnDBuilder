@@ -3,9 +3,8 @@
 
 #include "DDB_FL_Gridshape.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Kismet/DataTableFunctionLibrary.h"
 
-#include "DDB_Gridshape_Data.h"
+#include "Kismet/DataTableFunctionLibrary.h"
 
 TObjectPtr<UDataTable> UDDB_FL_Gridshape::gridDT = nullptr;
 

@@ -4,9 +4,6 @@
 #include "DDB_FL_Tile.h"
 #include "UObject/ConstructorHelpers.h"
 
-#include "DDB_TileType.h"
-
-
 UDDB_FL_Tile::UDDB_FL_Tile(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {

@@ -5,7 +5,7 @@
 
 #include "Components/StaticMeshComponent.h"
 
-#include "DDB_FL_Gridshape.h"
+#include "Utilities/DDB_FL_Gridshape.h"
 
 
 // Sets default values

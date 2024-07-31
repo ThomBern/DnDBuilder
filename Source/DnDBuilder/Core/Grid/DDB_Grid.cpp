@@ -11,9 +11,10 @@
 
 #include "DDB_GridVisual.h"
 #include "DDB_GridModifier.h"
+
 #include "../Utilities/DDB_FL_Utilities.h"
-#include "DDB_FL_Gridshape.h"
-#include "DDB_FL_Tile.h"
+#include "Utilities/DDB_FL_Gridshape.h"
+#include "Utilities/DDB_FL_Tile.h"
 
 // Sets default values
 ADDB_Grid::ADDB_Grid()
