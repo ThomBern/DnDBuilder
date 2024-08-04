@@ -48,6 +48,9 @@ void ADDB_GridModifier::OnConstruction(const FTransform &Transform)
 	// if (!row.mesh) return;
 
 	StaticMesh->SetStaticMesh(row.mesh);
+	StaticMesh->SetMaterial(0, row.flatMaterial);
+
+	StaticMesh->SetScalarParameterValueOnMaterials(FName("IsFilled"), 1.f);
 
 	switch (tileType) {
 		case EDDB_TileType::NORMAL:

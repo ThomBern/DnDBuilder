@@ -20,6 +20,8 @@ ADDB_GridMeshInstance::ADDB_GridMeshInstance()
 	InstancedMesh->SetCollisionObjectType(ECC_WorldStatic);
 	InstancedMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 	InstancedMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Block);
+
+	InstancedMesh->NumCustomDataFloats = 4;
 	
 }
 
@@ -45,13 +47,24 @@ void ADDB_GridMeshInstance::Tick(float DeltaTime)
 
 }
 
-void ADDB_GridMeshInstance::AddInstance(FTransform transform, FIntPoint index)
+void ADDB_GridMeshInstance::AddInstance(FTransform transform, FIntPoint index, TArray<EDDB_TileState> states)
 {
 	RemoveInstance(index);
 
 	InstancedMesh->AddInstance(transform);
 
-	instanceIndexes.Add(index);
+	int32 instanceIndex = instanceIndexes.Add(index);
+
+	bool isFilled = false;
+	FVector color = GetColorFromStates(states, isFilled);
+
+	InstancedMesh->SetCustomDataValue(instanceIndex, 0, color.X);
+	InstancedMesh->SetCustomDataValue(instanceIndex, 1, color.Y);
+	InstancedMesh->SetCustomDataValue(instanceIndex, 2, color.Z);
+	if (isFilled)
+		InstancedMesh->SetCustomDataValue(instanceIndex, 3, 1.f);
+
+
 }
 
 void ADDB_GridMeshInstance::RemoveInstance(FIntPoint index)
@@ -68,4 +81,27 @@ void ADDB_GridMeshInstance::ClearInstances()
 {
 	InstancedMesh->ClearInstances();
 	instanceIndexes.Empty();
+}
+
+FVector ADDB_GridMeshInstance::GetColorFromStates(TArray<EDDB_TileState> states, bool& isFilled)
+{
+	if (states.IsEmpty()) return FVector(0.f,0.f,0.f);
+	
+	TArray<EDDB_TileState> priority = { EDDB_TileState::SELECTED, EDDB_TileState::HOVERED };
+	
+	for (EDDB_TileState state : priority) {
+		if (states.Contains(state)) {
+			isFilled = true;
+
+			switch (state) {
+				case EDDB_TileState::SELECTED:
+					return FVector(1.f,0.3f, 0.05f);
+				case EDDB_TileState::HOVERED:
+					return FVector(0.8f,0.6f,0.f);
+			}
+		}
+	}
+
+	return FVector(0.f,0.f,0.f);
+
 }

@@ -16,6 +16,15 @@ enum class EDDB_TileType: uint8
 	NUM_MAX UMETA(Hidden)
 };
 
+UENUM(BlueprintType)
+enum class EDDB_TileState: uint8
+{
+	NONE UMETA(DisplayName="None"),
+	HOVERED UMETA(DisplayName="Hovered"),
+	SELECTED UMETA(DisplayName="Selected"),
+	NUM_MAX UMETA(Hidden)
+};
+
 USTRUCT(BlueprintType)
 struct DNDBUILDER_API FDDB_Tile_Data: public FTableRowBase
 {
@@ -26,6 +35,9 @@ struct DNDBUILDER_API FDDB_Tile_Data: public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EDDB_TileType type;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<EDDB_TileState> states;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTransform transform;

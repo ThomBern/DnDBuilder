@@ -61,7 +61,7 @@ void ADDB_GridVisual::InitializeGridVisual(ADDB_Grid* inGrid)
 
 	FDDB_Gridshape_Data shapeData = grid->GetCurrentShapeData();
 
-	gridMeshInstance->InitializeGridMeshInstance(shapeData.flatMesh, shapeData.flatBorderMaterial, FVector(0.f,0.f,0.f), ECollisionEnabled::QueryOnly);
+	gridMeshInstance->InitializeGridMeshInstance(shapeData.flatMesh, shapeData.flatMaterial, FVector(0.f,0.f,0.f), ECollisionEnabled::QueryOnly);
 
 	SetActorLocation(FVector(0.f,0.f,0.f));
 
@@ -73,7 +73,7 @@ void ADDB_GridVisual::UpdateTileVisual(FDDB_Tile_Data data)
 	gridMeshInstance->RemoveInstance(data.index);
 
 	if (UDDB_FL_Tile::IsTileTypeWalkable(data.type)) {
-		gridMeshInstance->AddInstance(data.transform, data.index);
+		gridMeshInstance->AddInstance(data.transform, data.index, data.states);
 	}
 }
 

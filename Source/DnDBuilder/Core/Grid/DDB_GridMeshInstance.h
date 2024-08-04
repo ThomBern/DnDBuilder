@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+
+#include "Utilities/DDB_FL_Tile.h"
+
 #include "DDB_GridMeshInstance.generated.h"
 
 class UInstancedStaticMeshComponent;
@@ -19,7 +22,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void AddInstance(FTransform transform, FIntPoint index);
+	void AddInstance(FTransform transform, FIntPoint index, TArray<EDDB_TileState> states);
 	void RemoveInstance(FIntPoint index);
 	void ClearInstances();
 
@@ -31,6 +34,8 @@ protected:
 	virtual void BeginPlay() override;
 
 private:	
+
+	FVector GetColorFromStates(TArray<EDDB_TileState> states, bool& isFilled);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInstancedStaticMeshComponent> InstancedMesh;

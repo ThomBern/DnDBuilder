@@ -33,10 +33,7 @@ struct DNDBUILDER_API FDDB_Gridshape_Data: public FTableRowBase
 	UStaticMesh* flatMesh;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UMaterialInstance* flatBorderMaterial;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UMaterialInstance* flatFilledMaterial;
+	UMaterialInstance* flatMaterial;
 
 	FDDB_Gridshape_Data()
 	{

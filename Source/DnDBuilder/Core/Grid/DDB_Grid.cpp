@@ -62,6 +62,14 @@ void ADDB_Grid::BeginPlay()
 	Super::BeginPlay();
 }
 
+FDDB_Gridshape_Data ADDB_Grid::GetCurrentShapeData() const
+{
+	FDDB_Gridshape_Data row;
+
+	UDDB_FL_Gridshape::GetShapeData(gridShape, row);
+	return row;
+}
+
 void ADDB_Grid::SpawnGrid(FVector centerLocation, FVector tileSize, FIntPoint tileCount, EDDB_Gridshape shape, bool useEnvironment)
 {
 	if (!gridVisual) return;
@@ -207,43 +215,32 @@ FVector ADDB_Grid::GetCursorLocationOnGrid(int32 index)
 	return FVector(-9999.f, -9999.f, -9999.f);
 }
 
-FIntPoint ADDB_Grid::GetTileIndexFromWorldLocation(FVector location) const
-{
-	FVector locationOnGrid = location - gridBottomLeftLocation;
-
-	if (gridShape == EDDB_Gridshape::SQUARE) {
-		FVector snappedLocation = UDDB_FL_Utilities::SnapVectorToVector(locationOnGrid, gridTileSize);
-		FVector interm = snappedLocation / gridTileSize;
-		return FIntPoint(interm.X, interm.Y);
-	}
-
-	if (gridShape == EDDB_Gridshape::HEXAGON) {
-		FVector snappedLocation = UDDB_FL_Utilities::SnapVectorToVector(locationOnGrid * FVector(1.f,2.f,1.f), gridTileSize * FVector(0.75f,0.25f,1.f));
-		FVector interm = snappedLocation / (gridTileSize * FVector(0.75f,1.f,1.f));
-
-		if (UDDB_FL_Utilities::IsFloatEven(interm.X)) {
-			return FIntPoint(FMath::RoundFromZero(interm.X), FMath::RoundHalfFromZero(interm.Y / 2) * 2);
-		}
-		else {
-			return FIntPoint(FMath::RoundFromZero(interm.X), (FMath::Floor(interm.Y / 2) * 2) + 1);
-		}
-	}
-
-	return FIntPoint(-999,-999);
-}
-
 FIntPoint ADDB_Grid::GetTileIndexUnderCursor(int32 playerIndex)
 {
 	FVector locationOnGrid = GetCursorLocationOnGrid(playerIndex);
     return GetTileIndexFromWorldLocation(locationOnGrid);
 }
 
-FDDB_Gridshape_Data ADDB_Grid::GetCurrentShapeData() const
+void ADDB_Grid::AddStateToTile(FIntPoint index, EDDB_TileState state)
 {
-	FDDB_Gridshape_Data row;
+	if(FDDB_Tile_Data* data = gridTiles.Find(index)) {
+		if(data->states.AddUnique(state) >= 0) {
+			gridTiles.Add(data->index, *data);
 
-	UDDB_FL_Gridshape::GetShapeData(gridShape, row);
-	return row;
+			gridVisual->UpdateTileVisual(*data);
+		}
+	}
+}
+
+void ADDB_Grid::RemoveStateFromTile(FIntPoint index, EDDB_TileState state)
+{
+	if(FDDB_Tile_Data* data = gridTiles.Find(index)) {
+		if(data->states.Remove(state) > 0) {
+			gridTiles.Add(data->index, *data);
+
+			gridVisual->UpdateTileVisual(*data);
+		}
+	}
 }
 
 void ADDB_Grid::CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLeft)
@@ -290,6 +287,31 @@ FVector ADDB_Grid::GetTileLocationFromGridIndex(FIntPoint gridIndex) const
 	FVector tileLocation = gridBottomLeftLocation + FVector(gridTileSize.X * fittedIndex.X, gridTileSize.Y * fittedIndex.Y, 0.f);
 
     return tileLocation;
+}
+
+FIntPoint ADDB_Grid::GetTileIndexFromWorldLocation(FVector location) const
+{
+	FVector locationOnGrid = location - gridBottomLeftLocation;
+
+	if (gridShape == EDDB_Gridshape::SQUARE) {
+		FVector snappedLocation = UDDB_FL_Utilities::SnapVectorToVector(locationOnGrid, gridTileSize);
+		FVector interm = snappedLocation / gridTileSize;
+		return FIntPoint(interm.X, interm.Y);
+	}
+
+	if (gridShape == EDDB_Gridshape::HEXAGON) {
+		FVector snappedLocation = UDDB_FL_Utilities::SnapVectorToVector(locationOnGrid * FVector(1.f,2.f,1.f), gridTileSize * FVector(0.75f,0.25f,1.f));
+		FVector interm = snappedLocation / (gridTileSize * FVector(0.75f,1.f,1.f));
+
+		if (UDDB_FL_Utilities::IsFloatEven(interm.X)) {
+			return FIntPoint(FMath::RoundFromZero(interm.X), FMath::RoundHalfFromZero(interm.Y / 2) * 2);
+		}
+		else {
+			return FIntPoint(FMath::RoundFromZero(interm.X), (FMath::Floor(interm.Y / 2) * 2) + 1);
+		}
+	}
+
+	return FIntPoint(-999,-999);
 }
 
 void ADDB_Grid::AddGridTile(FDDB_Tile_Data data)

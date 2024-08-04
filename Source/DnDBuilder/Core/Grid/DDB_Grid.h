@@ -47,6 +47,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FIntPoint GetTileIndexUnderCursor(int32 playerIndex);
 
+	UFUNCTION(BlueprintCallable)
+	void AddStateToTile(FIntPoint index, EDDB_TileState state);
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveStateFromTile(FIntPoint index, EDDB_TileState state);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Default)
 	FVector gridCenterLocation;
 
@@ -78,7 +84,6 @@ private:
 	
 	FVector GetTileLocationFromGridIndex(FIntPoint gridIndex) const;
 	FIntPoint GetTileIndexFromWorldLocation(FVector location) const;
-
 
 	void AddGridTile(FDDB_Tile_Data data);
 
