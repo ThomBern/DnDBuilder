@@ -8,6 +8,8 @@
 #include "../Grid/DDB_Grid.h"
 #include "../Grid/Utilities/DDB_FL_Tile.h"
 
+#include "Actions/Grid/DDB_Action_SelectTile.h"
+
 // Sets default values
 ADDB_PlayerActions::ADDB_PlayerActions()
 {
@@ -28,6 +30,10 @@ void ADDB_PlayerActions::BeginPlay()
 	if (PlayerController) {
 		EnableInput(PlayerController); 
 	}
+
+	TSubclassOf<ADDB_Action> A_selectTile = ADDB_Action_SelectTile::StaticClass();
+
+	SetSelectedActions(A_selectTile, A_selectTile);
 }
 
 // Called every frame
@@ -35,7 +41,51 @@ void ADDB_PlayerActions::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// TODO: Use EnhancedInput instead because this is shit when you hold a click down
+
+	if (PlayerController->IsInputKeyDown(EKeys::LeftMouseButton) && A_LeftClick) {
+		A_LeftClick->ExecuteAction(hoveredTile);
+	}
+
+	if (PlayerController->IsInputKeyDown(EKeys::RightMouseButton) && A_RightClick) {
+		A_RightClick->ExecuteAction(hoveredTile);
+	}
+
 	UpdateHoveredTile();
+}
+
+void ADDB_PlayerActions::SetSelectedActions(TSubclassOf<ADDB_Action> leftAction, TSubclassOf<ADDB_Action> rightAction)
+{
+	if (A_LeftClick) {
+		A_LeftClick->Destroy();
+		A_LeftClick = nullptr;
+	}
+	
+	FActorSpawnParameters params;
+	params.Owner = this;
+
+	if (leftAction) {
+		A_LeftClick = GetWorld()->SpawnActor<ADDB_Action>(leftAction, FTransform(), params);
+
+		if (A_LeftClick) {
+			A_LeftClick->playerActions = this;
+		}
+	}
+
+	if (A_RightClick) {
+		A_RightClick->Destroy();
+		A_RightClick = nullptr;
+	}
+
+	if (leftAction) {
+		A_RightClick = GetWorld()->SpawnActor<ADDB_Action>(rightAction, FTransform(), params);
+		
+		if (A_RightClick) {
+			A_RightClick->playerActions = this;
+		}
+	}
+
+	OnSelectedActionChanged.Broadcast(A_LeftClick, A_RightClick);
 }
 
 void ADDB_PlayerActions::UpdateHoveredTile()
@@ -48,13 +98,4 @@ void ADDB_PlayerActions::UpdateHoveredTile()
 
 		grid->AddStateToTile(hoveredTile, EDDB_TileState::HOVERED);
 	}
-
-	if (PlayerController->IsInputKeyDown(EKeys::LeftMouseButton)) {
-		grid->AddStateToTile(hoveredTile, EDDB_TileState::SELECTED);
-	}
-
-	if (PlayerController->IsInputKeyDown(EKeys::RightMouseButton)) {
-		grid->RemoveStateFromTile(hoveredTile, EDDB_TileState::SELECTED);
-	}
-
 }
