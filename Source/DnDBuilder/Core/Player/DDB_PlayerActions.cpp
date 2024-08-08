@@ -33,7 +33,7 @@ void ADDB_PlayerActions::BeginPlay()
 
 	TSubclassOf<ADDB_Action> A_selectTile = ADDB_Action_SelectTile::StaticClass();
 
-	SetSelectedActions(A_selectTile, A_selectTile);
+	SetSelectedActions(A_selectTile, nullptr);
 }
 
 // Called every frame
@@ -41,13 +41,20 @@ void ADDB_PlayerActions::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// TODO: Use EnhancedInput instead because this is shit when you hold a click down
-
-	if (PlayerController->IsInputKeyDown(EKeys::LeftMouseButton) && A_LeftClick) {
-		A_LeftClick->ExecuteAction(hoveredTile);
+	if (PlayerController->PlayerInput->WasJustReleased(EKeys::LeftMouseButton.GetFName())) {
+		leftClickPressed = false;
+	}
+	if (PlayerController->PlayerInput->WasJustReleased(EKeys::RightMouseButton.GetFName())) {
+		rightClickPressed = false;
 	}
 
-	if (PlayerController->IsInputKeyDown(EKeys::RightMouseButton) && A_RightClick) {
+
+	if (PlayerController->IsInputKeyDown(EKeys::LeftMouseButton) && A_LeftClick && !leftClickPressed) {
+		leftClickPressed = true;
+		A_LeftClick->ExecuteAction(hoveredTile);
+	}
+	if (PlayerController->IsInputKeyDown(EKeys::RightMouseButton) && A_RightClick && !rightClickPressed) {
+		rightClickPressed = true;
 		A_RightClick->ExecuteAction(hoveredTile);
 	}
 

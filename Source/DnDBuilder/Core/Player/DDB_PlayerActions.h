@@ -59,4 +59,5 @@ private:
 
 	TObjectPtr<APlayerController> PlayerController;
 
+	bool leftClickPressed, rightClickPressed = false;
 };
