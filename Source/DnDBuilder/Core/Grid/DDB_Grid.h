@@ -47,11 +47,28 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FIntPoint GetTileIndexUnderCursor(int32 playerIndex);
 
+	UFUNCTION(BlueprintPure)
+	FVector GetTileLocationFromGridIndex(FIntPoint index) const;
+	
+	UFUNCTION(BlueprintPure)
+	FVector GetTileScale() const;
+
+	UFUNCTION(BlueprintPure)
+	bool IsIndexValid(FIntPoint index);
+	
+	UFUNCTION(BlueprintCallable)
+	void AddGridTile(FDDB_Tile_Data data);
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveGridTile(FIntPoint index);
+
 	UFUNCTION(BlueprintCallable)
 	void AddStateToTile(FIntPoint index, EDDB_TileState state);
 
 	UFUNCTION(BlueprintCallable)
 	void RemoveStateFromTile(FIntPoint index, EDDB_TileState state);
+
+	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Default)
 	FVector gridCenterLocation;
@@ -81,11 +98,10 @@ protected:
 private:	
 	
 	void CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLeft);
-	
-	FVector GetTileLocationFromGridIndex(FIntPoint gridIndex) const;
+
 	FIntPoint GetTileIndexFromWorldLocation(FVector location) const;
 
-	void AddGridTile(FDDB_Tile_Data data);
+	//
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> SceneRoot;

@@ -11,8 +11,8 @@
 
 class ADDB_Action;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectedActionChangedDelegate, ADDB_Action*, LeftClickAction, ADDB_Action*, RightClickAction);
-// DECLARE_DELEGATE_TwoParams(FSelectedActionChangedDelegate, ADDB_Action*, ADDB_Action*);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSelectedActionsChangedDelegate, ADDB_Action*, LeftClickAction, ADDB_Action*, RightClickAction);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FHoveredTileChangedDelegate);
 
 
 UCLASS()
@@ -29,6 +29,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetSelectedActions(TSubclassOf<ADDB_Action> leftAction, TSubclassOf<ADDB_Action> rightAction);
+	
+	UFUNCTION()
+	void HoldAction();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<ADDB_Grid> grid;
@@ -39,14 +42,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FIntPoint selectedTile;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ADDB_Action> A_LeftClick;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ADDB_Action> A_RightClick;
 	
 	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FSelectedActionChangedDelegate OnSelectedActionChanged;
+	FSelectedActionsChangedDelegate OnSelectedActionsChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FHoveredTileChangedDelegate OnHoveredTileChanged;
 
 
 protected:

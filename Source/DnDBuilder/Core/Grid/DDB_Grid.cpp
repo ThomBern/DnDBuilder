@@ -97,7 +97,7 @@ void ADDB_Grid::SpawnGrid(FVector centerLocation, FVector tileSize, FIntPoint ti
 
 	auto LoopBody = [&](int x, int y) -> void {
 		FTransform tileTransform;
-		tileTransform.SetScale3D(gridTileSize / row.meshSize);
+		tileTransform.SetScale3D(GetTileScale());
 		tileTransform.SetTranslation(GetTileLocationFromGridIndex(FIntPoint(x,y)));
 		
 		if (useEnvironment) {
@@ -193,9 +193,11 @@ FVector ADDB_Grid::GetCursorLocationOnGrid(int32 index)
 	APlayerController* controller = UGameplayStatics::GetPlayerController(this, index);
 
 	FHitResult hitResult;
-	ETraceTypeQuery test = UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel2);
 
-	if (controller->GetHitResultUnderCursorByChannel(test, false, hitResult)) {
+	if (controller->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel2), false, hitResult)) {
+		return hitResult.Location;
+	}
+	else if (controller->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel1), false, hitResult)) {
 		return hitResult.Location;
 	}
 	else {
@@ -219,6 +221,55 @@ FIntPoint ADDB_Grid::GetTileIndexUnderCursor(int32 playerIndex)
 {
 	FVector locationOnGrid = GetCursorLocationOnGrid(playerIndex);
     return GetTileIndexFromWorldLocation(locationOnGrid);
+}
+
+FVector ADDB_Grid::GetTileLocationFromGridIndex(FIntPoint index) const
+{
+	FVector2D fittedIndex;
+	
+	switch (gridShape) {
+		case EDDB_Gridshape::SQUARE:
+			fittedIndex = FVector2D(index);
+			break;
+		case EDDB_Gridshape::HEXAGON:
+			fittedIndex.X = index.X * 0.75f;
+			fittedIndex.Y = index.Y * 0.5f;
+			break;
+		default:
+			fittedIndex = FVector2D(-999.f, -999.f);
+	}
+
+	FVector tileLocation = gridBottomLeftLocation + FVector(gridTileSize.X * fittedIndex.X, gridTileSize.Y * fittedIndex.Y, 0.f);
+
+    return tileLocation;
+}
+
+FVector ADDB_Grid::GetTileScale() const
+{
+	return (gridTileSize / GetCurrentShapeData().meshSize);
+}
+
+bool ADDB_Grid::IsIndexValid(FIntPoint index)
+{
+	if(gridTiles.Contains(index)) {
+    	return true;
+	}
+
+	return false;
+}
+
+void ADDB_Grid::AddGridTile(FDDB_Tile_Data data)
+{
+	gridTiles.Add(data.index, data);
+	gridVisual->UpdateTileVisual(data);
+}
+
+void ADDB_Grid::RemoveGridTile(FIntPoint index)
+{
+	if (gridTiles.Remove(index) > 0) {
+		FDDB_Tile_Data data(index, EDDB_TileType::NONE, FTransform());
+		gridVisual->UpdateTileVisual(data);
+	}
 }
 
 void ADDB_Grid::AddStateToTile(FIntPoint index, EDDB_TileState state)
@@ -268,27 +319,6 @@ void ADDB_Grid::CalculateCenterAndBottomLeft(FVector& center, FVector& bottomLef
 	}
 }
 
-FVector ADDB_Grid::GetTileLocationFromGridIndex(FIntPoint gridIndex) const
-{
-	FVector2D fittedIndex;
-	
-	switch (gridShape) {
-		case EDDB_Gridshape::SQUARE:
-			fittedIndex = FVector2D(gridIndex);
-			break;
-		case EDDB_Gridshape::HEXAGON:
-			fittedIndex.X = gridIndex.X * 0.75f;
-			fittedIndex.Y = gridIndex.Y * 0.5f;
-			break;
-		default:
-			fittedIndex = FVector2D(-999.f, -999.f);
-	}
-
-	FVector tileLocation = gridBottomLeftLocation + FVector(gridTileSize.X * fittedIndex.X, gridTileSize.Y * fittedIndex.Y, 0.f);
-
-    return tileLocation;
-}
-
 FIntPoint ADDB_Grid::GetTileIndexFromWorldLocation(FVector location) const
 {
 	FVector locationOnGrid = location - gridBottomLeftLocation;
@@ -314,8 +344,3 @@ FIntPoint ADDB_Grid::GetTileIndexFromWorldLocation(FVector location) const
 	return FIntPoint(-999,-999);
 }
 
-void ADDB_Grid::AddGridTile(FDDB_Tile_Data data)
-{
-	gridTiles.Add(data.index, data);
-	gridVisual->UpdateTileVisual(data);
-}

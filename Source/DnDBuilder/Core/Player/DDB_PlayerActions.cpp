@@ -15,7 +15,8 @@ ADDB_PlayerActions::ADDB_PlayerActions()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	
+	OnHoveredTileChanged.AddDynamic(this, &ADDB_PlayerActions::HoldAction);
 }
 
 // Called when the game starts or when spawned
@@ -92,7 +93,18 @@ void ADDB_PlayerActions::SetSelectedActions(TSubclassOf<ADDB_Action> leftAction,
 		}
 	}
 
-	OnSelectedActionChanged.Broadcast(A_LeftClick, A_RightClick);
+	OnSelectedActionsChanged.Broadcast(A_LeftClick, A_RightClick);
+}
+
+void ADDB_PlayerActions::HoldAction()
+{
+	if (A_LeftClick && leftClickPressed) {
+		A_LeftClick->ExecuteAction(hoveredTile);
+	}
+
+	if (A_RightClick && rightClickPressed) {
+		A_RightClick->ExecuteAction(hoveredTile);
+	}
 }
 
 void ADDB_PlayerActions::UpdateHoveredTile()
@@ -104,5 +116,9 @@ void ADDB_PlayerActions::UpdateHoveredTile()
 		hoveredTile = hoveredCurrently;
 
 		grid->AddStateToTile(hoveredTile, EDDB_TileState::HOVERED);
+
+		if (OnHoveredTileChanged.IsBound()) {
+			OnHoveredTileChanged.Broadcast();
+		}
 	}
 }
