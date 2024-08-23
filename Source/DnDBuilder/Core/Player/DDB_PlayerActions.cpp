@@ -5,7 +5,6 @@
 
 #include "Kismet/GameplayStatics.h"
 
-#include "../Grid/DDB_Grid.h"
 #include "../Grid/Utilities/DDB_FL_Tile.h"
 
 #include "Actions/Grid/DDB_Action_SelectTile.h"

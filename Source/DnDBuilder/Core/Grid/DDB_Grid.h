@@ -16,6 +16,12 @@ class APlayerController;
 class ADDB_GridVisual;
 struct FDDB_TileData;
 
+// DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTileDataUpdatedDelegate, FIntPoint, index);
+// DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGridDestroyedDelegate);
+
+DECLARE_DELEGATE_OneParam(FOnTileDataUpdatedDelegate, FIntPoint);
+DECLARE_DELEGATE(FOnGridDestroyedDelegate);
+
 UCLASS()
 class DNDBUILDER_API ADDB_Grid : public AActor
 {
@@ -90,6 +96,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TMap<FIntPoint, FDDB_Tile_Data> gridTiles;
+	
+	FOnTileDataUpdatedDelegate OnTileDataUpdated;
+
+	FOnGridDestroyedDelegate OnGridDestroyed;
 
 protected:
 	// Called when the game starts or when spawned

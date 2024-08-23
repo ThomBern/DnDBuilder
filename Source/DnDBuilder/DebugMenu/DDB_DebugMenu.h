@@ -7,6 +7,8 @@
 #include "Blueprint/UserWidget.h"
 #include "DDB_DebugMenu.generated.h"
 
+class UChildActorComponent;
+
 UCLASS()
 class DNDBUILDER_API ADDB_DebugMenu : public AActor
 {
@@ -27,4 +29,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DebugMenu")
 	TObjectPtr<UUserWidget> DebugMenu = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UChildActorComponent> CA_TileText;
 };

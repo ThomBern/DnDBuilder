@@ -138,6 +138,8 @@ void ADDB_Grid::DestroyGrid()
 {
 	gridTiles.Empty();
 	gridVisual->DestroyGridVisual();
+
+	OnGridDestroyed.ExecuteIfBound();
 }
 
 void ADDB_Grid::TraceForGround(FVector location, EDDB_TileType& tileType, FVector& outLocation)
@@ -262,6 +264,8 @@ void ADDB_Grid::AddGridTile(FDDB_Tile_Data data)
 {
 	gridTiles.Add(data.index, data);
 	gridVisual->UpdateTileVisual(data);
+
+	OnTileDataUpdated.ExecuteIfBound(data.index);
 }
 
 void ADDB_Grid::RemoveGridTile(FIntPoint index)
@@ -269,6 +273,8 @@ void ADDB_Grid::RemoveGridTile(FIntPoint index)
 	if (gridTiles.Remove(index) > 0) {
 		FDDB_Tile_Data data(index, EDDB_TileType::NONE, FTransform());
 		gridVisual->UpdateTileVisual(data);
+
+		OnTileDataUpdated.ExecuteIfBound(data.index);
 	}
 }
 
@@ -279,6 +285,8 @@ void ADDB_Grid::AddStateToTile(FIntPoint index, EDDB_TileState state)
 			gridTiles.Add(data->index, *data);
 
 			gridVisual->UpdateTileVisual(*data);
+
+			OnTileDataUpdated.ExecuteIfBound(data->index);
 		}
 	}
 }
@@ -290,6 +298,8 @@ void ADDB_Grid::RemoveStateFromTile(FIntPoint index, EDDB_TileState state)
 			gridTiles.Add(data->index, *data);
 
 			gridVisual->UpdateTileVisual(*data);
+
+			OnTileDataUpdated.ExecuteIfBound(data->index);
 		}
 	}
 }
