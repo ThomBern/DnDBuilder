@@ -49,8 +49,10 @@ void ADDB_LevelLoading::LoadLevel(const FName& levelName, bool bForceLoading)
 	// LOAD
 	loadedLevel = levelName;
 	level = UGameplayStatics::GetStreamingLevel(this, levelName);
-	if (!level && levelName != "None") {
-		UE_LOG(LogTemp, Warning, TEXT("Level to load is not valid"));		
+	if (!level) {
+		if (levelName != "None") {
+			UE_LOG(LogTemp, Warning, TEXT("Level to load is not valid"));		
+		}
 		return;
 	}
 	level->SetShouldBeLoaded(true);

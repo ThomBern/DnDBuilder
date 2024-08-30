@@ -13,6 +13,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 
 #include "DDB_GridVisual.h"
+#include "DDB_GridPathfinding.h"
 #include "DDB_GridModifier.h"
 #include "../Utilities/DDB_FL_Utilities.h"
 #include "Utilities/DDB_FL_Gridshape.h"
@@ -29,12 +30,19 @@ ADDB_Grid::ADDB_Grid()
 
 	CA_GridVisual = CreateDefaultSubobject<UChildActorComponent>(TEXT("ChildActor_GridVisual"));
 	CA_GridVisual->SetupAttachment(RootComponent);
-
+	
+	CA_GridPathfinding = CreateDefaultSubobject<UChildActorComponent>(TEXT("ChildActor_GridPathfinding"));
+	CA_GridPathfinding->SetupAttachment(RootComponent);
+	
 	gridCenterLocation = FVector(0.f, 0.f, 0.f);
 	gridTileSize = FVector(200.f, 200.f, 50.f);
 	gridTileCount = FIntPoint(10, 10);
 	gridShape = EDDB_Gridshape::SQUARE;
 	gridBottomLeftLocation = gridCenterLocation - FVector((FVector2D(gridTileCount) / 2) * FVector2D(gridTileSize.X, gridTileSize.Y), 0.f);
+
+	CA_GridVisual->SetChildActorClass(ADDB_GridVisual::StaticClass());
+	CA_GridPathfinding->SetChildActorClass(ADDB_GridPathfinding::StaticClass());
+
 }
 
 // Called every frame
@@ -46,13 +54,9 @@ void ADDB_Grid::Tick(float DeltaTime)
 
 void ADDB_Grid::OnConstruction(const FTransform &Transform)
 {
-	if (!CA_GridVisual->GetChildActor()) {
-		CA_GridVisual->SetChildActorClass(ADDB_GridVisual::StaticClass());
-	}
-
 	gridVisual = Cast<ADDB_GridVisual>(CA_GridVisual->GetChildActor());
+	gridPathfinding = Cast<ADDB_GridPathfinding>(CA_GridPathfinding->GetChildActor());
 	
-
 	SpawnGrid(GetActorLocation(), gridTileSize, gridTileCount, gridShape, true);
 }
 
@@ -87,6 +91,7 @@ void ADDB_Grid::SpawnGrid(FVector centerLocation, FVector tileSize, FIntPoint ti
 	DestroyGrid();
 
 	gridVisual->InitializeGridVisual(this);
+	gridPathfinding->InitializeGridPathfinding(this);
 
 	FDDB_Gridshape_Data row = GetCurrentShapeData();
 
@@ -301,6 +306,31 @@ void ADDB_Grid::RemoveStateFromTile(FIntPoint index, EDDB_TileState state)
 
 			OnTileDataUpdated.ExecuteIfBound(data->index);
 		}
+	}
+}
+
+TArray<FIntPoint> ADDB_Grid::GetAllTilesWithState(EDDB_TileState state)
+{
+	TArray<FDDB_Tile_Data> tilesData;
+	gridTiles.GenerateValueArray(tilesData);
+
+	TArray<FIntPoint> correctTiles;
+
+	for (const FDDB_Tile_Data& data : tilesData) {
+		if (data.states.Contains(state)) {
+			correctTiles.Add(data.index);
+		}
+
+	}
+    return correctTiles;
+}
+
+void ADDB_Grid::ClearStateFromTiles(EDDB_TileState state)
+{
+	TArray<FIntPoint> tiles = GetAllTilesWithState(state);
+
+	for (const FIntPoint& tile : tiles) {
+		RemoveStateFromTile(tile, state);
 	}
 }
 

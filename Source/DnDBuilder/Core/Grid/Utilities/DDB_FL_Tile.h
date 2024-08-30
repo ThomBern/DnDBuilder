@@ -22,6 +22,7 @@ enum class EDDB_TileState: uint8
 	NONE UMETA(DisplayName="None"),
 	HOVERED UMETA(DisplayName="Hovered"),
 	SELECTED UMETA(DisplayName="Selected"),
+	NEIGHBOR UMETA(DisplayName="IsNeighbor"),
 	NUM_MAX UMETA(Hidden)
 };
 

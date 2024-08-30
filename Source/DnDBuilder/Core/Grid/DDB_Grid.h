@@ -14,6 +14,8 @@ class UInstancedStaticMeshComponent;
 class UChildActorComponent;
 class APlayerController;
 class ADDB_GridVisual;
+class ADDB_GridPathfinding;
+
 struct FDDB_TileData;
 
 // DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTileDataUpdatedDelegate, FIntPoint, index);
@@ -74,6 +76,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveStateFromTile(FIntPoint index, EDDB_TileState state);
 
+	UFUNCTION(BlueprintCallable)
+	TArray<FIntPoint> GetAllTilesWithState(EDDB_TileState state);
+
+	UFUNCTION(BlueprintCallable)
+	void ClearStateFromTiles(EDDB_TileState state);
+
 	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Default)
@@ -93,6 +101,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<ADDB_GridVisual> gridVisual;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<ADDB_GridPathfinding> gridPathfinding;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TMap<FIntPoint, FDDB_Tile_Data> gridTiles;
@@ -116,7 +127,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> SceneRoot;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UChildActorComponent> CA_GridVisual;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UChildActorComponent> CA_GridPathfinding;
 
 };

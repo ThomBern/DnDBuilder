@@ -87,7 +87,11 @@ FVector ADDB_GridMeshInstance::GetColorFromStates(TArray<EDDB_TileState> states,
 {
 	if (states.IsEmpty()) return FVector(0.f,0.f,0.f);
 	
-	TArray<EDDB_TileState> priority = { EDDB_TileState::SELECTED, EDDB_TileState::HOVERED };
+	TArray<EDDB_TileState> priority = { 
+		EDDB_TileState::SELECTED, 
+		EDDB_TileState::HOVERED,
+		EDDB_TileState::NEIGHBOR
+	};
 	
 	for (EDDB_TileState state : priority) {
 		if (states.Contains(state)) {
@@ -98,6 +102,10 @@ FVector ADDB_GridMeshInstance::GetColorFromStates(TArray<EDDB_TileState> states,
 					return FVector(1.f,0.3f, 0.05f);
 				case EDDB_TileState::HOVERED:
 					return FVector(0.8f,0.6f,0.f);
+				case EDDB_TileState::NEIGHBOR:
+					return FVector(1.f, 0.3f, 0.7f);
+				default:
+					return FVector(0.5f, 0.5f, 0.5f);
 			}
 		}
 	}
